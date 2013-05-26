@@ -1,0 +1,25 @@
+Setting up your environment on Ubuntu
+--------------------------------------------
+Assuming you have postgresql and python 2.X installed
+
+
+1. Check your postgres version
+psql --version
+
+In my case it returned 9.1.9
+
+2. Install plpython
+sudo apt-get install postgresql-plpython-9.1
+
+3. Create your database (or use existing one)
+CREATE DATABASE <database_name>
+
+4. Allow creating plpython functions in your database
+createlang plpythonu <database_name> -U <superuser_name>
+
+in my case:
+createlang plpythonu ilf_json -U postgres
+
+Now you should be able to create and use python functions in your postgresql scripts.
+
+
