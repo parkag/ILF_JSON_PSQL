@@ -1,8 +1,6 @@
---struktura bazy
-
 ﻿CREATE TABLE "UZYTKOWNIK" (
 	id serial primary key,
-	nazwa_uzytkownika character varying
+	nazwa_uzytkownika text
 );
 
 CREATE TABLE "EKSPERYMENTY_DOSTEP"(
@@ -18,36 +16,34 @@ CREATE TABLE "SESJA_POMIAROWA"(
 
 CREATE TABLE "EKSPERYMENT"(
 	id serial primary key,
-	nazwa character varying
+	nazwa text
 );
 
 CREATE TABLE "SERIE"(
 	id serial primary key,
 	sesja_id integer,
 	data timestamp,
-	wynik character varying
+	wynik text
 );
-
---wiezy
 
 ALTER TABLE "EKSPERYMENTY_DOSTEP"
 	ADD CONSTRAINT "EKSPERYMENTY_DOSTEP_uzytkownik_id_fk" FOREIGN KEY (id_uzytkownika)
-	REFERENCES "UZYTKOWNIK"(id)
+	REFERENCES "UZYTKOWNIK"(id);
 
 ALTER TABLE "EKSPERYMENTY_DOSTEP"
 	ADD CONSTRAINT "EKSPERYMENTY_DOSTEP_sesja_id_fk" FOREIGN KEY (sesja_id)
-	REFERENCES "SESJA_POMIAROWA"(id)
+	REFERENCES "SESJA_POMIAROWA"(id);
 
 ALTER TABLE "SESJA_POMIAROWA"
 	ADD CONSTRAINT "SESJA_POMIAROWA_eksperyment_nazwa_fk" FOREIGN KEY(nazwa_id)
-	REFERENCES "EKSPERYMENT"(id)
+	REFERENCES "EKSPERYMENT"(id);
 
 ALTER TABLE "SERIE"
 	ADD CONSTRAINT "SERIE_sesja_id_fk" FOREIGN KEY(sesja_id)
-	REFERENCES "SESJA_POMIAROWA"(id)  
+	REFERENCES "SESJA_POMIAROWA"(id); 
 
---Funkcje
-CREATE OR REPLACE FUNCTION json(IN obiekt) RETURNS boolean AS
+
+CREATE OR REPLACE FUNCTION json(IN character varying) RETURNS boolean AS
 $$
 	import json
 	return True
