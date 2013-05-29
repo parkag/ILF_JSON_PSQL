@@ -48,15 +48,17 @@ CREATE OR REPLACE FUNCTION put_json(IN result text, integer ses_id)
 AS $$
 	import json
 	obj = json.loads(result)
-
+	rec = plpy.execute('SELECT * FROM "SERIE" WHERE sesja_id = $1', ses_id)
+	prev = json.loads(rec['wynik'])
 	for x in obj.keys():
-		rec = plpy.execute("SELECT * WHERE sesja_id =$1", ses_id)
-		if obj[x]["pragma"]=="append":
-			rec[x]["value"].append(obj[x]["value"])
-		elif obj[x]["pragma"]=="replace":
-			rec[x]["value"] = (obj[x]["value"])
-		elif obj[x]["pragma"]=="transient":
+		if obj[x]["pragma"] == "append":
+			prev[x]["value"].append(obj[x]["value"])
+		elif obj[x]["pragma"] == "replace":
+			prev[x]["value"] = (obj[x]["value"])
+		elif obj[x]["pragma"] == "transient":
 			pass
+	new_result = json.dumps(prev)
+	plpy.execute('UPDATE "SERIE" SET wynik = $1 WHERE sesja_id = $2', new_result, ses_id)
 	return True
 $$
 LANGUAGE 'plpythonu' VOLATILE;
