@@ -25,7 +25,7 @@ CREATE TABLE "SERIE"(
 	data timestamp,
 	wynik text
 );
-
+/*
 ALTER TABLE "EKSPERYMENTY_DOSTEP"
 	ADD CONSTRAINT "EKSPERYMENTY_DOSTEP_uzytkownik_id_fk" FOREIGN KEY (id_uzytkownika)
 	REFERENCES "UZYTKOWNIK"(id);
@@ -41,14 +41,17 @@ ALTER TABLE "SESJA_POMIAROWA"
 ALTER TABLE "SERIE"
 	ADD CONSTRAINT "SERIE_sesja_id_fk" FOREIGN KEY(sesja_id)
 	REFERENCES "SESJA_POMIAROWA"(id); 
+*/
 
-
-CREATE OR REPLACE FUNCTION put_json(IN result text, integer ses_id)
-	RETURNS boolean
+CREATE OR REPLACE FUNCTION put_json()
+	RETURNS TRIGGER
 AS $$
 	import json
-	obj = json.loads(result)
-	rec = plpy.execute('SELECT * FROM "SERIE" WHERE sesja_id = $1', ses_id)
+	rec = plpy.execute('SELECT * FROM "SERIE" WHERE sesja_id = $1', TD["new"]["sesja_id"]) --1 obiekt z wynikami na serie
+	if rec==Null:
+		return NEW	
+	obj = json.loads(TD["new"]["wynik"])
+
 	prev = json.loads(rec['wynik'])
 	for x in obj.keys():
 		if obj[x]["pragma"] == "append":
@@ -56,10 +59,15 @@ AS $$
 		elif obj[x]["pragma"] == "replace":
 			prev[x]["value"] = (obj[x]["value"])
 		elif obj[x]["pragma"] == "transient":
-			pass
-	new_result = json.dumps(prev)
-	plpy.execute('UPDATE "SERIE" SET wynik = $1 WHERE sesja_id = $2', new_result, ses_id)
-	return True
+			return Null
+	NEW.wynik = json.dumps(prev)
+	plpy.execute('DELETE * FROM "SERIE" WHERE sesja_id = $1', TD["new"]["sesja_id"])
+	--plpy.execute('UPDATE "SERIE" SET wynik = $1 WHERE sesja_id = $2', new_result, OLD.sesja_id)
+	return NEW
 $$
 LANGUAGE 'plpythonu' VOLATILE;
+
+CREATE TRIGGER manage_json 
+	BEFORE INSERT ON SERIE 
+	FOR EACH ROW EXECUTE PROCEDURE put_json();
 
