@@ -50,8 +50,8 @@ ALTER TABLE "SERIE"
 */
 
 CREATE OR REPLACE FUNCTION put_json()
-	RETURNS TRIGGER 
-	AS $$
+	RETURNS TRIGGER AS
+	$$
 	import json
 	from datetime import datetime
 	
@@ -66,20 +66,24 @@ CREATE OR REPLACE FUNCTION put_json()
 	else:
 		prev = json.loads(rec[0]['wynik'])
 		for x in obj.keys():
-			if obj[x]["pragma"] == "append":
+			if x not in prev.keys() and obj[x]["pragma"] != "transient":
+				prev[x] = {}
+				prev[x]['value'] = obj[x]["value"]
+			elif obj[x]["pragma"] == "append":
 				for v in obj[x]["value"]:
 					prev[x]["value"].append(v)
 			elif obj[x]["pragma"] == "replace":
 				prev[x]["value"] = obj[x]["value"]
 			elif obj[x]["pragma"] == "transient":
 				pass
+			else:
+				return "SKIP"
 		TD['new']['wynik'] = json.dumps(prev, separators=(',',':'))
 		TD['new']['data'] = datetime.now();
 	return "MODIFY"
-$$
+	$$
 LANGUAGE 'plpythonu' VOLATILE;
-
---not secure, possible sql-injection
+--not secure for users to modify sesja_id directly, possible sql-injection
 
 
 CREATE TRIGGER manage_json 

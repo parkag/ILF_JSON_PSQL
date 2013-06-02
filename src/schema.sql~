@@ -1,4 +1,10 @@
-﻿CREATE TABLE "UZYTKOWNIK" (
+﻿DROP TABLE IF EXISTS "UZYTKOWNIK" CASCADE;
+DROP TABLE IF EXISTS "EKSPERYMENTY_DOSTEP" CASCADE;
+DROP TABLE IF EXISTS "SESJA_POMIAROWA" CASCADE;
+DROP TABLE IF EXISTS "EKSPERYMENT" CASCADE;
+DROP TABLE IF EXISTS "SERIE" CASCADE;
+
+CREATE TABLE "UZYTKOWNIK" (
 	id serial primary key,
 	nazwa_uzytkownika text
 );
@@ -44,30 +50,40 @@ ALTER TABLE "SERIE"
 */
 
 CREATE OR REPLACE FUNCTION put_json()
-	RETURNS TRIGGER
-AS $$
+	RETURNS TRIGGER AS
+	$$
 	import json
-	rec = plpy.execute('SELECT * FROM "SERIE" WHERE sesja_id = $1', TD["new"]["sesja_id"]) --1 obiekt z wynikami na serie
-	if rec==Null:
-		return NEW	
-	obj = json.loads(TD["new"]["wynik"])
-
-	prev = json.loads(rec['wynik'])
-	for x in obj.keys():
-		if obj[x]["pragma"] == "append":
-			prev[x]["value"].append(obj[x]["value"])
-		elif obj[x]["pragma"] == "replace":
-			prev[x]["value"] = (obj[x]["value"])
-		elif obj[x]["pragma"] == "transient":
-			return Null
-	NEW.wynik = json.dumps(prev)
-	plpy.execute('DELETE * FROM "SERIE" WHERE sesja_id = $1', TD["new"]["sesja_id"])
-	--plpy.execute('UPDATE "SERIE" SET wynik = $1 WHERE sesja_id = $2', new_result, OLD.sesja_id)
-	return NEW
-$$
+	from datetime import datetime
+	
+	rec = plpy.execute('SELECT * FROM "SERIE" WHERE sesja_id = %d' %TD['new']['sesja_id'] )
+	plpy.execute('DELETE FROM "SERIE" WHERE sesja_id = %d' %TD['new']['sesja_id'] )
+	obj = json.loads( TD['new']['wynik'] ) 
+	
+	if len(rec) == 0:
+		for x in obj.keys():
+			del obj[x]["pragma"]
+		TD['new']['wynik'] = json.dumps(obj, separators=(',',':'))
+	else:
+		prev = json.loads(rec[0]['wynik'])
+		for x in obj.keys():
+			if obj[x]["pragma"] == "append":
+				for v in obj[x]["value"]:
+					prev[x]["value"].append(v)
+			elif obj[x]["pragma"] == "replace":
+				prev[x]["value"] = obj[x]["value"]
+			elif obj[x]["pragma"] == "transient":
+				pass
+			else:
+				return "SKIP"
+		TD['new']['wynik'] = json.dumps(prev, separators=(',',':'))
+		TD['new']['data'] = datetime.now();
+	return "MODIFY"
+	$$
 LANGUAGE 'plpythonu' VOLATILE;
+--not secure for users to modify sesja_id directly, possible sql-injection
+
 
 CREATE TRIGGER manage_json 
-	BEFORE INSERT ON SERIE 
+	BEFORE INSERT ON "SERIE" 
 	FOR EACH ROW EXECUTE PROCEDURE put_json();
 
