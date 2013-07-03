@@ -66,10 +66,7 @@ CREATE OR REPLACE FUNCTION put_json()
 	else:
 		prev = json.loads(rec[0]['wynik'])
 		for x in obj.keys():
-			if x not in prev.keys() and obj[x]["pragma"] != "transient":
-				prev[x] = {}
-				prev[x]['value'] = obj[x]["value"]
-			elif obj[x]["pragma"] == "append":
+			if obj[x]["pragma"] == "append":
 				for v in obj[x]["value"]:
 					prev[x]["value"].append(v)
 			elif obj[x]["pragma"] == "replace":
@@ -77,7 +74,6 @@ CREATE OR REPLACE FUNCTION put_json()
 			elif obj[x]["pragma"] == "transient":
 				pass
 			else:
-				#raise exception?
 				return "SKIP"
 		TD['new']['wynik'] = json.dumps(prev, separators=(',',':'))
 		TD['new']['data'] = datetime.now();

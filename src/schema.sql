@@ -54,11 +54,9 @@ CREATE OR REPLACE FUNCTION put_json()
 	$$
 	import json
 	from datetime import datetime
-
-	get_curr_rec = plpy.prepare('SELECT * FROM "SERIE" WHERE sesja_id = $1', [ "int" ])	
-	rec = plpy.execute(get_curr_rec, [TD['new']['sesja_id']])
-	delete_old_serie = plpy.prepare('DELETE FROM "SERIE" WHERE sesja_id = $1', [ "int" ])
-	plpy.execute(delete_old_serie, [TD['new']['sesja_id']] )
+	
+	rec = plpy.execute('SELECT * FROM "SERIE" WHERE sesja_id = %d' %TD['new']['sesja_id'] )
+	plpy.execute('DELETE FROM "SERIE" WHERE sesja_id = %d' %TD['new']['sesja_id'] )
 	obj = json.loads( TD['new']['wynik'] ) 
 	
 	if len(rec) == 0:
@@ -79,13 +77,13 @@ CREATE OR REPLACE FUNCTION put_json()
 			elif obj[x]["pragma"] == "transient":
 				pass
 			else:
-				#raise exception?
 				return "SKIP"
 		TD['new']['wynik'] = json.dumps(prev, separators=(',',':'))
 		TD['new']['data'] = datetime.now();
 	return "MODIFY"
 	$$
 LANGUAGE 'plpythonu' VOLATILE;
+--not secure for users to modify sesja_id directly, possible sql-injection
 
 
 CREATE TRIGGER manage_json 
