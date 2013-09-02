@@ -5,31 +5,31 @@ DROP TABLE IF EXISTS "EKSPERYMENT" CASCADE;
 DROP TABLE IF EXISTS "SERIE" CASCADE;
 
 CREATE TABLE "UZYTKOWNIK" (
-	id serial primary key,
-	nazwa_uzytkownika text
+	id SERIAL PRIMARY KEY,
+	nazwa_uzytkownika TEXT
 );
 
 CREATE TABLE "EKSPERYMENTY_DOSTEP"(
-	id serial primary key,
-	id_uzytkownika integer,
-	sesja_id integer
+	id SERIAL PRIMARY KEY,
+	id_uzytkownika INTEGER,
+	sesja_id INTEGER
 );
 
 CREATE TABLE "SESJA_POMIAROWA"(
-	id serial primary key,
-	nazwa_id integer
+	id SERIAL PRIMARY KEY,
+	nazwa_id INTEGER
 );
 
 CREATE TABLE "EKSPERYMENT"(
-	id serial primary key,
-	nazwa text
+	id SERIAL PRIMARY KEY,
+	nazwa TEXT
 );
 
 CREATE TABLE "SERIE"(
-	id serial primary key,
-	sesja_id integer,
-	data timestamp,
-	wynik text
+	id SERIAL PRIMARY KEY,
+	sesja_id INTEGER,
+	data TIMESTAMP,
+	wynik TEXT
 );
 /*
 ALTER TABLE "EKSPERYMENTY_DOSTEP"
