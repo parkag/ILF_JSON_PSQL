@@ -7,12 +7,6 @@ from sqlalchemy.exc import IntegrityError
 
 __author__ = 'gp'
 
-"""
-sess = settings.Session()
-
-orm.Base.metadata.create_all(settings.engine)
-sess.close()
-"""
 
 class CheckSchemaTestCase(tester.SchemaUnittest, unittest.TestCase):
     """
