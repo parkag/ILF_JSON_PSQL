@@ -60,10 +60,14 @@ CREATE OR REPLACE FUNCTION put_json()
 	delete_old_serie = plpy.prepare('DELETE FROM "SERIE" WHERE sesja_id = $1', [ "int" ])
 	plpy.execute(delete_old_serie, [TD['new']['sesja_id']] )
 	obj = json.loads( TD['new']['wynik'] ) 
-	
+
+	#row is empty
 	if len(rec) == 0:
 		for x in obj.keys():
-			del obj[x]["pragma"]
+			if obj[x]["pragma"] == "transient":
+				del obj[x]
+			else:
+				del obj[x]["pragma"]
 		TD['new']['wynik'] = json.dumps(obj, separators=(',',':'))
 	else:
 		prev = json.loads(rec[0]['wynik'])
@@ -79,8 +83,8 @@ CREATE OR REPLACE FUNCTION put_json()
 			elif obj[x]["pragma"] == "transient":
 				pass
 			else:
-				#raise exception?
-				return "SKIP"
+				#raise Exception("Unknown pragma %s" %obj[x]["pragma"])
+				return "SKIP" 
 		TD['new']['wynik'] = json.dumps(prev, separators=(',',':'))
 		TD['new']['data'] = datetime.now();
 	return "MODIFY"

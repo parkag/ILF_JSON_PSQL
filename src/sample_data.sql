@@ -24,6 +24,9 @@ INSERT INTO "EKSPERYMENT"("nazwa") VALUES
 ('OGNIWA PELTIERA');
 
 INSERT INTO "SERIE" ("sesja_id", "data", "wynik") VALUES
+(1, now(), '{ "betaArray": {"value": [0, 1, 2], "pragma": "transient"}}');
+
+INSERT INTO "SERIE" ("sesja_id", "data", "wynik") VALUES
 (1, now(), '{ "betaArray": {"value": [0, 1, 2], "pragma": "replace"}, "constants": {"value": [3.1415], "pragma": "append"}}');
 INSERT INTO "SERIE" ("sesja_id", "data", "wynik") VALUES
 (1, now(), '{ "betaArray": {"value": [3, 4, 5], "pragma": "append"}, "constants": {"value": [2.73], "pragma": "append"}, "state": {"value":"in progress", "pragma":"transient"}}');
